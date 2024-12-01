@@ -308,12 +308,12 @@ func DeleteProduct(c *fiber.Ctx) error {
 
 
 
-// Cart Api
+// Cart Api susah GK ngerti soal preload
 
 func GetCartItems(c *fiber.Ctx) error {
 	cartID := c.Locals("cartID")
 	cart := model.Cart{}
-	model.DB.Preload("CartItem").Find(&cart)
+	model.DB.Preload("Product").Preload("CartItem").Find(&cart)
 
 	fmt.Print(cartID)
 	return c.JSON(fiber.Map{
