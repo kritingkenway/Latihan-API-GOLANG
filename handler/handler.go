@@ -313,10 +313,89 @@ func DeleteProduct(c *fiber.Ctx) error {
 func GetCartItems(c *fiber.Ctx) error {
 	cartID := c.Locals("cartID")
 	cart := model.Cart{}
-	model.DB.Preload("Product").Preload("CartItem").Find(&cart)
+	model.DB.Preload("CartItem").Preload("CartItem.Product").Where("id = ?", cartID).Find(&cart)
 
 	fmt.Print(cartID)
 	return c.JSON(fiber.Map{
 		"result" : cart,
 	})
+}
+
+func AddItemCart(c *fiber.Ctx) error {
+	cartID := c.Locals("cartID").(uint)
+	cartItem := model.CartItem{}
+	productID, _ := c.ParamsInt("id")
+
+
+	if err := model.DB.Where("cart_id = ?",cartID).Where("product_id = ?",productID).First(&cartItem).Error; err != nil {
+		
+		cartItem = model.CartItem{
+			Qty: 1,
+			ProductID: uint(productID),
+			CartID: cartID,
+		}
+		
+		model.DB.Create(&cartItem)
+
+		return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+			"status" : true,
+			"message" : "produk telah berhasil ditambahkan ke keranjang",
+		})
+	}
+	
+	fmt.Print(cartItem)
+
+	updateItems := model.CartItem{
+		ID: cartItem.ID,
+		Qty: cartItem.Qty + 1,
+		ProductID: uint(productID),
+		CartID: cartID,
+	}
+
+	model.DB.Save(&updateItems)
+	
+	return c.Status(fiber.StatusAccepted).JSON(fiber.Map{
+		"status" : true,
+		"message" : "Kuantitas Produk telah ditambahkan",
+	})
+}
+
+func SubtractItemCart(c *fiber.Ctx) error {
+	cartID := c.Locals("cartID").(uint)
+	cartItem := model.CartItem{}
+	productID, _ := c.ParamsInt("id")
+
+
+	if err := model.DB.Where("cart_id = ?",cartID).Where("product_id = ?",productID).First(&cartItem).Error; err != nil {
+		
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status" : false,
+			"message" : err.Error(),
+		})
+	}
+	
+	if cartItem.Qty > 1 {
+
+
+		updateItems := model.CartItem{
+			ID: cartItem.ID,
+			Qty: cartItem.Qty - 1,
+			ProductID: uint(productID),
+			CartID: cartID,
+		}
+	
+		model.DB.Save(&updateItems)
+		
+		return c.Status(fiber.StatusAccepted).JSON(fiber.Map{
+			"status" : true,
+			"message" : "Kuantitas Produk telah dikurangi",
+		})
+	}
+	model.DB.Delete(&cartItem)
+	
+	return c.Status(fiber.StatusAccepted).JSON(fiber.Map{
+		"status" : true,
+		"message" : "Produk telah dihapus dari daftar keranjang",
+	})
+
 }

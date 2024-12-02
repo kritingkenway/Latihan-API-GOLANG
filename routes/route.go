@@ -37,6 +37,8 @@ func Setup(app *fiber.App)  {
 
 	//Route CART
 	app.Get("/cart", middleware.JWTProtectedRoute(),middleware.Cart(), handler.GetCartItems)
+	app.Get("/cart/add/:id", middleware.JWTProtectedRoute(),middleware.Cart(), handler.AddItemCart)
+	app.Get("/cart/subtract/:id", middleware.JWTProtectedRoute(),middleware.Cart(), handler.SubtractItemCart)
 
 	
 }
