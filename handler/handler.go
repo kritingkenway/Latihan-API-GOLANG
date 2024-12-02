@@ -146,7 +146,6 @@ func Logout(c *fiber.Ctx) error {
 	
 	var userToken model.UserToken
 
-	fmt.Print(userId)
 
 	if err := model.DB.Where("user_id =?", userId.ID).First(&userToken).Error; err != nil {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
@@ -343,16 +342,18 @@ func AddItemCart(c *fiber.Ctx) error {
 		})
 	}
 	
-	fmt.Print(cartItem)
+	
 
-	updateItems := model.CartItem{
-		ID: cartItem.ID,
-		Qty: cartItem.Qty + 1,
-		ProductID: uint(productID),
-		CartID: cartID,
-	}
+	// updateItems := model.CartItem{
+	// 	ID: cartItem.ID,
+	// 	Qty: cartItem.Qty + 1,
+	// 	ProductID: uint(productID),
+	// 	CartID: cartID,
+	// }
 
-	model.DB.Save(&updateItems)
+	// model.DB.Save(&updateItems)
+
+	model.DB.Model(&cartItem).Update("qty", cartItem.Qty + 1)
 	
 	return c.Status(fiber.StatusAccepted).JSON(fiber.Map{
 		"status" : true,
@@ -377,15 +378,17 @@ func SubtractItemCart(c *fiber.Ctx) error {
 	if cartItem.Qty > 1 {
 
 
-		updateItems := model.CartItem{
-			ID: cartItem.ID,
-			Qty: cartItem.Qty - 1,
-			ProductID: uint(productID),
-			CartID: cartID,
-		}
+		// updateItems := model.CartItem{
+		// 	ID: cartItem.ID,
+		// 	Qty: cartItem.Qty - 1,
+		// 	ProductID: uint(productID),
+		// 	CartID: cartID,
+		// }
 	
-		model.DB.Save(&updateItems)
+		// model.DB.Save(&updateItems)
 		
+		model.DB.Model(&cartItem).Update("qty", cartItem.Qty - 1)
+
 		return c.Status(fiber.StatusAccepted).JSON(fiber.Map{
 			"status" : true,
 			"message" : "Kuantitas Produk telah dikurangi",
