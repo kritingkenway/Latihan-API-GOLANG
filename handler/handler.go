@@ -3,8 +3,8 @@ package handler
 import (
 	"coba/model"
 	"coba/utils"
-	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -314,7 +314,7 @@ func GetCartItems(c *fiber.Ctx) error {
 	cart := model.Cart{}
 	model.DB.Preload("CartItem").Preload("CartItem.Product").Where("id = ?", cartID).Find(&cart)
 
-	fmt.Print(cartID)
+	
 	return c.JSON(fiber.Map{
 		"result" : cart,
 	})
@@ -399,6 +399,57 @@ func SubtractItemCart(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusAccepted).JSON(fiber.Map{
 		"status" : true,
 		"message" : "Produk telah dihapus dari daftar keranjang",
+	})
+
+}
+
+
+func GetMyOrders(c *fiber.Ctx) error {
+	userID := c.Locals("user").(model.User)
+	myOrder := model.Order{}
+	model.DB.Preload("OrderItem").Preload("OrderItem.Product").Where("user_id = ?", userID.ID).Find(&myOrder)
+
+	
+	return c.JSON(fiber.Map{
+		"result" : myOrder,
+	})
+}
+
+
+
+func MakeOrders(c *fiber.Ctx) error {
+	cartID := c.Locals("cartID")
+	cart := model.Cart{}
+
+	model.DB.Preload("CartItem").Preload("CartItem").Where("id = ?", cartID).Find(&cart)
+
+	//Membuat data entry Order sebelum memasukan data data produk pada OrderItems
+	order := model.Order{
+		ID: cart.ID,
+		UserID: cart.UserID,
+		CreatedAt: time.Now(),
+	}
+
+	model.DB.Create(&order)
+
+	//melakukan entry OrderItem
+
+	orderItem := []model.OrderItem{}
+
+	for _ , cartItem := range cart.CartItem {
+		orderItem = append(orderItem, model.OrderItem{
+			Qty: cartItem.Qty,
+			ProductID: cartItem.ProductID,
+			OrderID: cartItem.CartID,
+		})
+	}
+
+	model.DB.Create(&orderItem)
+
+	model.DB.Delete(&cart)
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"status": true,
+		"message": "Pesanan telah berhasil dibuat",
 	})
 
 }

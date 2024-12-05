@@ -21,6 +21,8 @@ type User struct {
 	Password string `gorm:"not null"`
 
 	Cart Cart
+
+	Order []Order
 }
 
 type UserToken struct {
@@ -43,7 +45,7 @@ type Cart struct {
 	ID uint `form:"id" gorm:"primaryKey"`
 	UserID uint `form:"user_id" gorm:"not null"`
 	CreatedAt time.Time
-	CartItem []CartItem
+	CartItem []CartItem `gorm:"constraint:OnDelete:CASCADE;"`
 	
 }
 
@@ -54,6 +56,25 @@ type CartItem struct {
 	ProductID uint `form:"product_id" gorm:"not null"`	
 	Product Product
 	CartID uint `form:"cart_id" gorm:"not null"`
+
+	
+}
+
+type Order struct {
+	ID uint `form:"id" gorm:"primaryKey"`
+	UserID uint `form:"user_id" gorm:"not null"`
+	CreatedAt time.Time
+	OrderItem []OrderItem `gorm:"constraint:OnDelete:CASCADE;"`
+	
+}
+
+
+type OrderItem struct {
+	ID uint `form:"id" gorm:"primaryKey;autoIncrement"`
+	Qty uint `form:"qty" gorm:"not null"`
+	ProductID uint `form:"product_id" gorm:"not null"`	
+	Product Product
+	OrderID uint `form:"order_id" gorm:"not null"`
 
 	
 }
@@ -82,5 +103,7 @@ func AutoMigration (db *gorm.DB) {
 		&Product{},
 		&Cart{},
 		&CartItem{},
+		&Order{},
+		&OrderItem{},
 	)
 }

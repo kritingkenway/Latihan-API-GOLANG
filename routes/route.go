@@ -40,5 +40,9 @@ func Setup(app *fiber.App)  {
 	app.Get("/cart/add/:id", middleware.JWTProtectedRoute(),middleware.Cart(), handler.AddItemCart)
 	app.Get("/cart/subtract/:id", middleware.JWTProtectedRoute(),middleware.Cart(), handler.SubtractItemCart)
 
+	//melakukan order
+	app.Get("/myorder", middleware.JWTProtectedRoute(),middleware.Cart(), handler.GetMyOrders)
+	app.Post("/makeorder", middleware.JWTProtectedRoute(),middleware.Cart(), handler.MakeOrders)
+
 	
 }
